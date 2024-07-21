@@ -77,7 +77,7 @@ class StableMultiDiffusionSDXLPipeline(nn.Module):
     def __init__(
         self,
         device: torch.device,
-        dtype: torch.dtype = torch.float16,
+        dtype: torch.dtype = torch.float32,
         hf_key: Optional[str] = None,
         lora_key: Optional[str] = None,
         load_from_local: bool = False, # Turn on if you have already downloaed LoRA & Hugging Face hub is down.
@@ -180,7 +180,7 @@ class StableMultiDiffusionSDXLPipeline(nn.Module):
             model_ckpt = "sdxl_lightning_4step_unet.safetensors" # Use the correct ckpt for your step setting!
 
             unet = UNet2DConditionModel.from_config(model_key, subfolder='unet').to(self.device, self.dtype)
-            unet.load_state_dict(load_file(hf_hub_download(lightning_repo, model_ckpt), device=self.device))
+            unet.load_state_dict(load_file(hf_hub_download(lightning_repo, model_ckpt), device=str(self.device)))
             self.pipe = StableDiffusionXLPipeline.from_pretrained(model_key, unet=unet, torch_dtype=self.dtype, variant=variant).to(self.device)
 
         # Create model
