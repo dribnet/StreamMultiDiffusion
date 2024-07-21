@@ -633,7 +633,9 @@ class StableMultiDiffusionPipeline(nn.Module):
             guidance_scale = self.default_guidance_scale
         self.scheduler.set_timesteps(num_inference_steps)
 
+        unwrap_image = False
         if isinstance(prompts, str):
+            unwrap_image = True
             prompts = [prompts]
         if isinstance(negative_prompts, str):
             negative_prompts = [negative_prompts]
@@ -659,6 +661,9 @@ class StableMultiDiffusionPipeline(nn.Module):
         # Return PIL Image.
         latent = latent.to(dtype=self.dtype)
         imgs = [T.ToPILImage()(self.decode_latents(l[None])[0]) for l in latent]
+        # return single image if we only received a single prompt
+        if unwrap_image:
+            imgs = imgs[0]
         return imgs
 
     @torch.no_grad()
