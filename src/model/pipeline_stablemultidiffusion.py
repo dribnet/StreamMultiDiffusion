@@ -1110,3 +1110,56 @@ class StableMultiDiffusionPipeline(nn.Module):
         else:
             image = T.ToPILImage()(image)
         return image
+
+    @torch.no_grad()
+    def sample(
+        self,
+        prompts: Union[str, List[str]],
+        negative_prompts: Union[str, List[str]] = '',
+        height: int = 512,
+        width: int = 512,
+        num_inference_steps: Optional[int] = 50,
+        guidance_scale: Optional[float] = 5,
+        batch_size: int = 1,
+    ) -> Image.Image:
+        r"""StableDiffusionXLPipeline for single-prompt single-tile generation.
+
+        Minimal Example:
+            >>> device = torch.device('cuda:0')
+            >>> smd = StableMultiDiffusionSDXLPipeline(device)
+            >>> image = smd.sample('A photo of the dolomites')
+            >>> image.save('my_creation.png')
+
+        Args:
+            prompts (Union[str, List[str]]): A text prompt.
+            negative_prompts (Union[str, List[str]]): A negative text prompt.
+            height (int): Height of a generated image.
+            width (int): Width of a generated image.
+            num_inference_steps (Optional[int]): Number of inference steps.
+                Default inference scheduling is used if none is specified.
+            guidance_scale (Optional[float]): Classifier guidance scale.
+                Default value is used if none is specified.
+            batch_size (int): Number of images to generate.
+
+        Returns: A PIL.Image image.
+        """
+        unwrap_image = False
+        if isinstance(prompts, str):
+            unwrap_image = True
+            prompts = [prompts]
+
+        # this is a bit of a cop-out I guess...
+        imgs = self.pipe(
+            prompt=prompts,
+            negative_prompt=negative_prompts,
+            height=height,
+            width=width,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            batch_size=batch_size
+            )[0]
+
+        # return single image if we only received a single prompt
+        if unwrap_image:
+            imgs = imgs[0]
+        return imgs

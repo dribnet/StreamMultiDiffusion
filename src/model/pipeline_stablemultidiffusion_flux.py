@@ -263,6 +263,11 @@ class StableMultiDiffusionFluxPipeline(nn.Module):
         else:
             hf_key = "black-forest-labs/FLUX.1-dev"
 
+        if hf_key.endswith('schnell'):
+            self.is_schnell = True 
+        else:
+            self.is_schnell = False
+
         # transformer = FluxTransformer2DModel.from_pretrained(
         #     hf_key,
         #     subfolder="transformer",
@@ -1185,3 +1190,57 @@ class StableMultiDiffusionFluxPipeline(nn.Module):
         else:
             image = T.ToPILImage()(image)
         return image
+
+    @torch.no_grad()
+    def sample(
+        self,
+        prompts: Union[str, List[str]],
+        height: int = 512,
+        width: int = 512,
+        num_inference_steps: Optional[int] = None,
+        guidance_scale: Optional[float] = 0,
+    ) -> Image.Image:
+        r"""StableDiffusionXLPipeline for single-prompt single-tile generation.
+
+        Minimal Example:
+            >>> device = torch.device('cuda:0')
+            >>> smd = StableMultiDiffusionSDXLPipeline(device)
+            >>> image = smd.sample('A photo of the dolomites')
+            >>> image.save('my_creation.png')
+
+        Args:
+            prompts (Union[str, List[str]]): A text prompt.
+            negative_prompts (Union[str, List[str]]): A negative text prompt.
+            height (int): Height of a generated image.
+            width (int): Width of a generated image.
+            num_inference_steps (Optional[int]): Number of inference steps.
+                Default inference scheduling is used if none is specified.
+            guidance_scale (Optional[float]): Classifier guidance scale.
+                Default value is used if none is specified.
+            batch_size (int): Number of images to generate.
+
+        Returns: A PIL.Image image.
+        """
+        unwrap_image = False
+        if isinstance(prompts, str):
+            unwrap_image = True
+            prompts = [prompts]
+
+        if num_inference_steps is None:
+            if self.is_schnell:
+                num_inference_steps = 4
+            else:
+                num_inference_steps = 50
+
+        imgs = self.pipe(
+            prompt=prompts,
+            height=height,
+            width=width,
+            num_inference_steps=num_inference_steps,
+            guidance_scale=guidance_scale,
+            )[0]
+
+        # return single image if we only received a single prompt
+        if unwrap_image:
+            imgs = imgs[0]
+        return imgs
