@@ -20,6 +20,7 @@
 
 from .pipeline_stablemultidiffusion import StableMultiDiffusionPipeline
 from .pipeline_stablemultidiffusion_sdxl import StableMultiDiffusionSDXLPipeline
+from .pipeline_stablemultidiffusion_flux import StableMultiDiffusionFluxPipeline
 from .pipeline_stablemultidiffusion_kolors import StableMultiDiffusionKolorsPipeline
 from .streammultidiffusion import StreamMultiDiffusion
 from .streammultidiffusion_sdxl import StreamMultiDiffusionSDXL
