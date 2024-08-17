@@ -62,4 +62,4 @@ image = smd(
     width=width,
     bootstrap_steps=1,
 )
-image.save('region_kolors.png')
+image.save('outputs/region_kolors1.png')
